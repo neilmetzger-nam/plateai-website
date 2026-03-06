@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import IntakeForm from "./components/IntakeForm";
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
             <a href="#how-it-works" className="text-sm text-zinc-400 transition hover:text-white">How It Works</a>
             <a href="#pricing" className="text-sm text-zinc-400 transition hover:text-white">Pricing</a>
             <a href="#examples" className="text-sm text-zinc-400 transition hover:text-white">Examples</a>
+            <Link href="/generate" className="text-sm text-zinc-400 transition hover:text-white">Generate a Photo</Link>
             <button onClick={() => setShowForm(true)} className="rounded-full bg-orange-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-orange-600">Start Free Trial</button>
           </div>
         </div>
@@ -31,7 +33,7 @@ export default function Home() {
           <h1 className="text-4xl font-bold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl">Your menu deserves better photos.</h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-400 md:text-xl">PlateAI generates professional food photography and cinematic hero videos for your restaurant — in minutes, not weeks. No photographer, no studio, no markup.</p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <button onClick={() => setShowForm(true)} className="rounded-full bg-orange-500 px-8 py-3.5 text-base font-semibold text-white transition hover:bg-orange-600">Generate Your First Photo →</button>
+            <Link href="/generate" className="rounded-full bg-orange-500 px-8 py-3.5 text-base font-semibold text-white transition hover:bg-orange-600">Generate Your First Photo →</Link>
             <a href="#examples" className="rounded-full border border-zinc-700 px-8 py-3.5 text-base font-semibold text-zinc-300 transition hover:border-zinc-500 hover:text-white">See Examples</a>
           </div>
           <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
@@ -177,6 +179,42 @@ export default function Home() {
         </div>
       </section>
 
+
+      {/* BEFORE / AFTER */}
+      <section className="bg-zinc-950 px-6 py-24">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-center text-3xl font-bold text-white md:text-4xl">Already have photos? We make them extraordinary.</h2>
+          <p className="mt-4 text-center text-zinc-400">Upload your existing menu photos — we enhance colors, lighting, and composition while keeping every ingredient accurate.</p>
+          <div className="mt-16 max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 gap-4 md:gap-8">
+              <div>
+                <div className="rounded-xl overflow-hidden">
+                  <img src="/before-after/wonton-before.png" alt="Wonton Soup — Before" className="w-full object-cover" />
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="rounded-full bg-zinc-700 px-3 py-1 text-xs font-semibold text-zinc-300">BEFORE</span>
+                  <span className="text-sm text-zinc-500">Original restaurant photo</span>
+                </div>
+              </div>
+              <div>
+                <div className="rounded-xl overflow-hidden ring-2 ring-orange-500">
+                  <img src="/before-after/wonton-after.webp" alt="Wonton Soup — After" className="w-full object-cover" />
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white">AFTER</span>
+                  <span className="text-sm text-zinc-400">PlateAI Enhanced — 90 seconds</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-8 text-center">
+              <p className="text-sm text-zinc-500">Wonton Soup — Red Bar Sushi &amp; Best Thai Kitchen, Leesburg VA</p>
+            </div>
+          </div>
+          <div className="mt-12 text-center">
+            <button onClick={() => setShowForm(true)} className="rounded-full bg-orange-500 px-8 py-3.5 text-base font-semibold text-white transition hover:bg-orange-600">Enhance My Photos →</button>
+          </div>
+        </div>
+      </section>
       {/* PRICING */}
       <section id="pricing" className="bg-zinc-900 px-6 py-24">
         <div className="mx-auto max-w-6xl">
