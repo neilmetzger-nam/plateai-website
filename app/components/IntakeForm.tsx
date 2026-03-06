@@ -92,7 +92,7 @@ export default function IntakeForm({ onClose }: IntakeFormProps) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("https://formspree.io/f/xpwzgkdo", {
+      const res = await fetch("https://formspree.io/f/mpqyzprz", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
