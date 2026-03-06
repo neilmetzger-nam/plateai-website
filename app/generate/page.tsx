@@ -2,6 +2,13 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
+import {
+  CUISINE_OPTIONS,
+  getTemplatesForCuisine,
+  type CuisineTemplate,
+  type CuisineQuestion,
+} from "@/lib/cuisine-templates";
+import { buildPrompt } from "@/lib/prompt-builder";
 
 const TOTAL_STEPS = 8;
 
@@ -108,6 +115,10 @@ export default function GenerateWizard() {
   const [variations, setVariations] = useState(2);
   const [addVideo, setAddVideo] = useState(false);
   const [videoBannerDismissed, setVideoBannerDismissed] = useState(false);
+  const [cuisine, setCuisine] = useState("");
+  const [cuisineContext, setCuisineContext] = useState<Record<string, string | string[] | boolean>>({});
+  const [selectedTemplate, setSelectedTemplate] = useState<CuisineTemplate | null>(null);
+  const [showCuisineSuggestions, setShowCuisineSuggestions] = useState(true);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -174,8 +185,27 @@ export default function GenerateWizard() {
       resolution,
       variations,
       addVideo,
+      cuisine,
+      cuisineContext,
+      selectedTemplate: selectedTemplate?.id,
     };
+    const prompt = buildPrompt(config);
     console.log("Generation config:", config);
+    console.log("Built prompt:", prompt);
+  }
+
+  function handleCuisineAnswer(questionId: string, value: string | string[] | boolean) {
+    setCuisineContext((prev) => ({ ...prev, [questionId]: value }));
+  }
+
+  function toggleCuisineMulti(questionId: string, option: string) {
+    setCuisineContext((prev) => {
+      const current = (prev[questionId] as string[]) || [];
+      const next = current.includes(option)
+        ? current.filter((v) => v !== option)
+        : [...current, option];
+      return { ...prev, [questionId]: next };
+    });
   }
 
   function togglePlatform(id: string) {
@@ -516,6 +546,90 @@ export default function GenerateWizard() {
                 )}
               </div>
 
+              {/* Cuisine selector */}
+              <div className="mt-8">
+                <p className="mb-3 text-sm font-medium text-zinc-400">
+                  What cuisine is this dish?
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {CUISINE_OPTIONS.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => {
+                        setCuisine(c);
+                        const templates = getTemplatesForCuisine(c);
+                        setSelectedTemplate(templates[0] || null);
+                        setCuisineContext({});
+                        setShowCuisineSuggestions(true);
+                      }}
+                      className={`rounded-full px-3 py-1.5 text-sm transition ${
+                        cuisine === c
+                          ? "bg-orange-500 text-white"
+                          : "border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Smart suggestions */}
+              {cuisine && selectedTemplate && showCuisineSuggestions && (
+                <div className="mt-8 animate-[fadeSlideUp_0.3s_ease-out]">
+                  <button
+                    onClick={() => setShowCuisineSuggestions((v) => !v)}
+                    className="mb-4 flex items-center gap-2 text-sm font-semibold text-orange-400"
+                  >
+                    🍽️ Smart suggestions for {cuisine}
+                    <span className="text-xs text-zinc-500">▼</span>
+                  </button>
+
+                  {/* Template picker if multiple */}
+                  {getTemplatesForCuisine(cuisine).length > 1 && (
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      {getTemplatesForCuisine(cuisine).map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            setSelectedTemplate(t);
+                            setCuisineContext({});
+                          }}
+                          className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                            selectedTemplate.id === t.id
+                              ? "bg-orange-500/20 text-orange-400 border border-orange-500/40"
+                              : "border border-zinc-700 text-zinc-500 hover:text-zinc-300"
+                          }`}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+                    {selectedTemplate.questions.map((q) => (
+                      <CuisineQuestionField
+                        key={`${selectedTemplate.id}-${q.id}`}
+                        question={q}
+                        value={cuisineContext[q.id]}
+                        onAnswer={(val) => handleCuisineAnswer(q.id, val)}
+                        onToggleMulti={(opt) => toggleCuisineMulti(q.id, opt)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {cuisine && selectedTemplate && !showCuisineSuggestions && (
+                <button
+                  onClick={() => setShowCuisineSuggestions(true)}
+                  className="mt-6 text-sm text-zinc-500 transition hover:text-orange-400"
+                >
+                  🍽️ Show smart suggestions for {cuisine} ▶
+                </button>
+              )}
+
               <button
                 onClick={() => goForward()}
                 disabled={ingredients.length === 0}
@@ -781,4 +895,89 @@ export default function GenerateWizard() {
       )}
     </div>
   );
+}
+
+function CuisineQuestionField({
+  question,
+  value,
+  onAnswer,
+  onToggleMulti,
+}: {
+  question: CuisineQuestion;
+  value: string | string[] | boolean | undefined;
+  onAnswer: (val: string | string[] | boolean) => void;
+  onToggleMulti: (option: string) => void;
+}) {
+  if (question.type === "boolean") {
+    const checked = value === true;
+    return (
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-zinc-300">{question.question}</span>
+        <button
+          onClick={() => onAnswer(!checked)}
+          className={`relative h-6 w-11 rounded-full transition ${
+            checked ? "bg-orange-500" : "bg-zinc-700"
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${
+              checked ? "left-5.5" : "left-0.5"
+            }`}
+          />
+        </button>
+      </div>
+    );
+  }
+
+  if (question.type === "select") {
+    return (
+      <div>
+        <p className="mb-2 text-sm text-zinc-300">{question.question}</p>
+        <div className="flex flex-wrap gap-2">
+          {question.options?.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => onAnswer(opt)}
+              className={`rounded-full px-3 py-1 text-xs transition ${
+                value === opt
+                  ? "bg-orange-500 text-white"
+                  : "border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (question.type === "multi") {
+    const selected = (value as string[]) || [];
+    return (
+      <div>
+        <p className="mb-2 text-sm text-zinc-300">{question.question}</p>
+        <div className="flex flex-wrap gap-2">
+          {question.options?.map((opt) => {
+            const active = selected.includes(opt);
+            return (
+              <button
+                key={opt}
+                onClick={() => onToggleMulti(opt)}
+                className={`rounded-full px-3 py-1 text-xs transition ${
+                  active
+                    ? "bg-orange-500 text-white"
+                    : "border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
+                }`}
+              >
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }

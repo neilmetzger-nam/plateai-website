@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 interface Message {
   role: "user" | "assistant";
@@ -23,6 +24,7 @@ function setCredits(n: number) {
 }
 
 export default function ChatRefinement() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [credits, setCreditsState] = useState(INITIAL_CREDITS);
   const [messages, setMessages] = useState<Message[]>([
@@ -68,6 +70,17 @@ export default function ChatRefinement() {
     } finally {
       setLoading(false);
     }
+  }
+
+  // Only show on /generate routes
+  if (!pathname.startsWith("/generate")) return null;
+
+  function handleRegenerate(promptAddition: string) {
+    if (credits <= 0) return;
+    const newCredits = credits - 1;
+    setCreditsState(newCredits);
+    setCredits(newCredits);
+    console.log("Regenerating with prompt addition:", promptAddition);
   }
 
   return (
@@ -128,10 +141,19 @@ export default function ChatRefinement() {
                 }`}>
                   <p>{m.content}</p>
                   {m.promptAddition && (
-                    <div className="mt-2 rounded-lg bg-zinc-700/60 p-2 font-mono text-xs text-zinc-300">
-                      <p className="mb-1 text-zinc-500">Add to prompt:</p>
-                      {m.promptAddition}
-                    </div>
+                    <>
+                      <div className="mt-2 rounded-lg bg-zinc-700/60 p-2 font-mono text-xs text-zinc-300">
+                        <p className="mb-1 text-zinc-500">Add to prompt:</p>
+                        {m.promptAddition}
+                      </div>
+                      <button
+                        onClick={() => handleRegenerate(m.promptAddition!)}
+                        disabled={credits <= 0}
+                        className="mt-2 w-full rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-orange-600 disabled:opacity-40"
+                      >
+                        Regenerate with this fix →
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

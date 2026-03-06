@@ -6,6 +6,7 @@ import IntakeForm from "./components/IntakeForm";
 
 export default function Home() {
   const [showForm, setShowForm] = useState(false);
+  const [baFilter, setBaFilter] = useState("All");
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -180,41 +181,168 @@ export default function Home() {
       </section>
 
 
-      {/* BEFORE / AFTER */}
+      {/* BEFORE / AFTER GALLERY */}
       <section className="bg-zinc-950 px-6 py-24">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-3xl font-bold text-white md:text-4xl">Already have photos? We make them extraordinary.</h2>
-          <p className="mt-4 text-center text-zinc-400">Upload your existing menu photos — we enhance colors, lighting, and composition while keeping every ingredient accurate.</p>
-          <div className="mt-16 max-w-4xl mx-auto">
-            <div className="grid grid-cols-2 gap-4 md:gap-8">
-              <div>
-                <div className="rounded-xl overflow-hidden">
-                  <img src="/before-after/wonton-before.png" alt="Wonton Soup — Before" className="w-full object-cover" />
-                </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="rounded-full bg-zinc-700 px-3 py-1 text-xs font-semibold text-zinc-300">BEFORE</span>
-                  <span className="text-sm text-zinc-500">Original restaurant photo</span>
-                </div>
-              </div>
-              <div>
-                <div className="rounded-xl overflow-hidden ring-2 ring-orange-500">
-                  <img src="/before-after/wonton-after.webp" alt="Wonton Soup — After" className="w-full object-cover" />
-                </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white">AFTER</span>
-                  <span className="text-sm text-zinc-400">PlateAI Enhanced — 90 seconds</span>
-                </div>
-              </div>
-            </div>
-            <div className="mt-8 text-center">
-              <p className="text-sm text-zinc-500">Wonton Soup — Red Bar Sushi &amp; Best Thai Kitchen, Leesburg VA</p>
-            </div>
+          <p className="mt-4 text-center text-zinc-400">Real restaurants. Real dishes. No photographers.</p>
+
+          {/* Restaurant filter tabs */}
+          <div className="mt-10 flex justify-center gap-6">
+            {["All", "Red Bar Sushi", "Best Thai Kitchen"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setBaFilter(tab)}
+                className={`border-b-2 pb-2 text-sm font-medium transition ${
+                  baFilter === tab
+                    ? "border-orange-500 text-white"
+                    : "border-transparent text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
+            {[
+              { dish: "Wonton Soup", restaurant: "Red Bar Sushi", cuisine: "Thai / Japanese", mode: "Enhanced", before: "/before-after/wonton-before.png", after: "/before-after/wonton-after.webp" },
+              { dish: "Tonkotsu Ramen", restaurant: "Red Bar Sushi", cuisine: "Japanese", mode: "Enhanced", before: "/before-after/tonkotsu-ramen-before.png", after: "/before-after/tonkotsu-ramen-after.webp" },
+              { dish: "Ka Praw", restaurant: "Best Thai Kitchen", cuisine: "Thai", mode: "Enhanced", before: "/before-after/ka-praw-before.png", after: "/before-after/ka-praw-after-v2.webp" },
+              { dish: "Miso Soup", restaurant: "Red Bar Sushi", cuisine: "Japanese", mode: "Lifestyle Scene", before: "/before-after/miso-soup-before.png", after: "/before-after/miso-soup-lifestyle-after.webp" },
+              { dish: "Salmon Carpaccio", restaurant: "Red Bar Sushi", cuisine: "Japanese", mode: "Michelin", before: "/before-after/salmon-carpaccio-before.png", after: "/before-after/salmon-carpaccio-after.webp" },
+              { dish: "Gyoza Soup", restaurant: "Red Bar Sushi", cuisine: "Japanese", mode: "Enhanced", before: "/before-after/gyoza-soup-before.png", after: "/before-after/gyoza-soup-after-v2.webp" },
+            ]
+              .filter((p) => baFilter === "All" || p.restaurant === baFilter)
+              .map((pair) => (
+                <div key={pair.dish} className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
+                  <div className="relative grid grid-cols-2">
+                    <div className="overflow-hidden">
+                      <img src={pair.before} alt={`${pair.dish} — Before`} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-zinc-950 px-2 py-0.5 text-xs font-bold text-zinc-400 ring-2 ring-zinc-700">VS</div>
+                    <div className="group overflow-hidden">
+                      <img src={pair.after} alt={`${pair.dish} — After`} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{pair.dish}</p>
+                      <p className="text-xs text-zinc-400">{pair.restaurant}</p>
+                    </div>
+                    <span className="rounded-full bg-orange-500/20 px-2.5 py-0.5 text-xs font-semibold text-orange-400">{pair.mode}</span>
+                  </div>
+                </div>
+              ))}
+          </div>
+
           <div className="mt-12 text-center">
             <button onClick={() => setShowForm(true)} className="rounded-full bg-orange-500 px-8 py-3.5 text-base font-semibold text-white transition hover:bg-orange-600">Enhance My Photos →</button>
           </div>
         </div>
       </section>
+
+      {/* CONTENT LIFECYCLE */}
+      <section className="px-6 py-24">
+        <style jsx>{`
+          @keyframes arrowPulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+          }
+        `}</style>
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-center text-3xl font-bold text-white md:text-4xl">From one photo to a full content library</h2>
+          <p className="mt-4 text-center text-zinc-400">Every dish you generate becomes a complete content asset — ready for your menu, your social, and your ads.</p>
+
+          <div className="mt-16 grid gap-4 md:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] md:items-center">
+            {/* Step 1 — Photo */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+              <div className="mb-3 text-2xl">📸</div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Menu &amp; Delivery</p>
+              <h3 className="mt-1 text-base font-semibold text-white">The Photo</h3>
+              <div className="mt-3 overflow-hidden rounded-lg">
+                <img src="/images/wagyu-ribeye-1.webp" alt="Menu photo" className="h-32 w-full object-cover" />
+              </div>
+              <p className="mt-3 text-xs text-zinc-400">Enhanced or AI-generated. DoorDash, UberEats, website.</p>
+              <span className="mt-3 inline-block rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-400">Starter · $49/mo</span>
+            </div>
+
+            {/* Arrow 1 */}
+            <div className="hidden text-2xl text-orange-500 md:block" style={{ animation: "arrowPulse 2s ease-in-out infinite" }}>→</div>
+
+            {/* Step 2 — Hero Video */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+              <div className="mb-3 text-2xl">🎬</div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Website &amp; Reels</p>
+              <h3 className="mt-1 text-base font-semibold text-white">The Hero Video</h3>
+              <div className="mt-3 overflow-hidden rounded-lg">
+                <video src="/videos/pork-ribs-on-grill.mp4" autoPlay muted loop playsInline className="h-32 w-full object-cover" />
+              </div>
+              <p className="mt-3 text-xs text-zinc-400">Your best photo, animated. Steam, motion, drama.</p>
+              <span className="mt-3 inline-block rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-400">Pro · $99/mo</span>
+            </div>
+
+            {/* Arrow 2 */}
+            <div className="hidden text-2xl text-orange-500 md:block" style={{ animation: "arrowPulse 2s ease-in-out infinite 0.5s" }}>→</div>
+
+            {/* Step 3 — Social Clips */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+              <div className="mb-3 text-2xl">📱</div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">TikTok · Instagram · Stories</p>
+              <h3 className="mt-1 text-base font-semibold text-white">Social Clips</h3>
+              <div className="mt-3 flex justify-center gap-2">
+                {[
+                  { label: "TikTok 15s", h: "h-20" },
+                  { label: "Reel 30s", h: "h-20" },
+                  { label: "Story 9:16", h: "h-20" },
+                ].map((f) => (
+                  <div key={f.label} className={`${f.h} flex w-12 flex-col items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800`}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-orange-500"><path d="M8 5v14l11-7z"/></svg>
+                    <span className="mt-1 text-[8px] text-zinc-500">{f.label}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-zinc-400">Platform-optimized cuts. Vertical. Ready to post.</p>
+              <span className="mt-3 inline-block rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-400">Pro · $99/mo</span>
+            </div>
+
+            {/* Arrow 3 */}
+            <div className="hidden text-2xl text-orange-500 md:block" style={{ animation: "arrowPulse 2s ease-in-out infinite 1s" }}>→</div>
+
+            {/* Step 4 — Ad Creative */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+              <div className="mb-3 text-2xl">📺</div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Facebook · Google · YouTube</p>
+              <h3 className="mt-1 text-base font-semibold text-white">Ad Creative</h3>
+              <div className="mt-3 flex justify-center gap-2">
+                <div className="flex h-12 w-20 items-center justify-center rounded border border-zinc-700 bg-zinc-800 text-[8px] text-zinc-500">YouTube Pre-roll</div>
+                <div className="flex h-14 w-14 items-center justify-center rounded border border-zinc-700 bg-zinc-800 text-[8px] text-zinc-500">Facebook Ad</div>
+                <div className="flex h-16 w-10 items-center justify-center rounded border border-zinc-700 bg-zinc-800 text-[8px] text-zinc-500">Google Display</div>
+              </div>
+              <p className="mt-3 text-xs text-zinc-400">Ad-ready assets with copy. Just set your budget and launch.</p>
+              <span className="mt-3 inline-block rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-400">Studio · $199/mo</span>
+            </div>
+          </div>
+
+          <div className="mt-16 text-center">
+            <p className="mb-6 text-lg text-zinc-400">Start with a photo. We&apos;ll handle the rest.</p>
+            <button onClick={() => setShowForm(true)} className="rounded-full bg-orange-500 px-8 py-3.5 text-base font-semibold text-white transition hover:bg-orange-600">Generate My First Photo →</button>
+          </div>
+        </div>
+      </section>
+
+      {/* TEXT US A PHOTO */}
+      <section className="bg-zinc-900 px-6 py-16">
+        <div className="mx-auto max-w-2xl">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-8 text-center">
+            <div className="mb-4 text-4xl">📱</div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-orange-500">Try it right now — no signup needed</p>
+            <p className="mt-4 text-2xl font-bold text-white md:text-3xl">(833) 324-7207</p>
+            <p className="mt-4 text-zinc-400">Text a photo of any dish to the number above. We&apos;ll send back an enhanced version in under 3 minutes. Free.</p>
+          </div>
+        </div>
+      </section>
+
       {/* PRICING */}
       <section id="pricing" className="bg-zinc-900 px-6 py-24">
         <div className="mx-auto max-w-6xl">
