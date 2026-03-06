@@ -37,3 +37,15 @@ After cuisine type, ask:
 - Cross-reference generated image against ingredient list
 - Flag any missing or added items
 - Re-generate if inaccurate (included in all plans)
+
+## Serveware Rule
+- Always specify: "Use the same bowl/plate style as shown in the reference photo"
+- This preserves brand identity and prevents customer confusion
+- If no reference photo, ask owner: "What style bowl/plate do you use?" (white ceramic / dark ceramic / wooden board / etc.)
+
+## Optional/Seasonal Ingredients Rule
+- If AI adds an ingredient not in the description, flag it
+- Owner can approve with a note: "shown with seasonal bok choy" or "served with chef's garnish"
+- Add approved extras to the description with "(optional)" or "(seasonal)" label
+- Never silently add ingredients — always disclose
+- Wizard Step 4 (ingredient confirm) should show a warning if we detect the generated image contains unconfirmed items

@@ -152,3 +152,27 @@ Do NOT deploy — Dave handles that.
 
 When completely finished, run:
 openclaw system event --text "Done: PlateAI generation wizard built at /generate" --mode now
+
+---
+
+## Amendment: Step 4b — Optional/Seasonal Ingredients
+
+After the ingredient confirmation tag list in Step 4, add:
+
+**Optional add-on section** (collapsible, closed by default):
+- Toggle label: "+ Add optional or seasonal item"
+- When expanded: text input — "e.g. seasonal bok choy, chef's garnish"
+- Small helper text: "This will appear in the image caption as 'shown with [item]' — the AI may include it but it won't be listed as a core ingredient"
+- Any items added here get stored in `optionalIngredients: string[]` in the config object
+
+**Caption auto-generation rule:**
+- If optionalIngredients is non-empty, append to image caption: "shown with [optional items]"
+- Example: "Tonkotsu Ramen — shown with seasonal bok choy"
+
+**Serveware step addition (insert into Step 2 — after upload):**
+- After photo upload, show a small field: "What style bowl/plate is this served in?"
+- Placeholder: "e.g. dark ceramic bowl, white plate, wooden board"
+- Pre-fill if we can detect from the reference photo
+- Store as `serveware: string` in config
+- Inject into generation prompt automatically: "Use the same [serveware] style as shown in the reference photo"
+- For Generated mode (no reference photo): make this field required
