@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import ChatRefinement from "./components/ChatRefinement";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
@@ -20,8 +21,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} antialiased`}>{children}<ChatRefinement /></body>
-    </html>
+    <ClerkProvider appearance={{ variables: { colorPrimary: "#f97316" } }}>
+      <html lang="en">
+        <body className={`${geistSans.variable} antialiased`}>
+          {children}
+          <ChatRefinement />
+          <script
+            src="https://sandbox.web.squarecdn.com/v1/square.js"
+            async
+          />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

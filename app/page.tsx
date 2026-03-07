@@ -2,15 +2,34 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import IntakeForm from "./components/IntakeForm";
+import CheckoutModal from "./components/CheckoutModal";
+import type { PlanKey } from "@/lib/plans";
 
 export default function Home() {
+  const { isSignedIn, isLoaded } = useUser();
   const [showForm, setShowForm] = useState(false);
   const [baFilter, setBaFilter] = useState("All");
+  const [checkoutPlan, setCheckoutPlan] = useState<PlanKey | null>(null);
+
+  function handlePricingClick(plan: PlanKey) {
+    if (!isSignedIn) {
+      window.location.href = "/sign-up";
+    } else {
+      setCheckoutPlan(plan);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       {showForm && <IntakeForm onClose={() => setShowForm(false)} />}
+      {checkoutPlan && (
+        <CheckoutModal
+          plan={checkoutPlan}
+          onClose={() => setCheckoutPlan(null)}
+        />
+      )}
 
       {/* NAV */}
       <nav className="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
@@ -23,7 +42,18 @@ export default function Home() {
             <a href="#pricing" className="text-sm text-zinc-400 transition hover:text-white">Pricing</a>
             <a href="#examples" className="text-sm text-zinc-400 transition hover:text-white">Examples</a>
             <Link href="/generate" className="text-sm text-zinc-400 transition hover:text-white">Generate a Photo</Link>
-            <button onClick={() => setShowForm(true)} className="rounded-full bg-orange-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-orange-600">Start Free Trial</button>
+            {isLoaded && isSignedIn ? (
+              <div className="flex items-center gap-4">
+                <Link href="/dashboard" className="text-sm text-zinc-400 transition hover:text-white">Dashboard</Link>
+                <UserButton />
+              </div>
+            ) : (
+              <SignInButton mode="modal">
+                <button className="rounded-full bg-orange-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-orange-600">
+                  Start Free Trial
+                </button>
+              </SignInButton>
+            )}
           </div>
         </div>
       </nav>
@@ -343,6 +373,19 @@ export default function Home() {
         </div>
       </section>
 
+      {/* SMS CTA */}
+      <section className="bg-zinc-950 px-6 py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="mb-4 text-5xl">📱</div>
+          <h2 className="mb-3 text-3xl font-bold text-white md:text-4xl">Try it right now — no signup needed</h2>
+          <p className="mb-8 text-lg text-zinc-400">Text any food photo to our number. We&apos;ll send back an AI-enhanced version in under 3 minutes. Free.</p>
+          <a href="sms:+18333247207" className="inline-block rounded-xl bg-orange-500 px-10 py-5 text-2xl font-bold text-white shadow-lg transition hover:bg-orange-400">
+            Text (833) 324-7207
+          </a>
+          <p className="mt-4 text-sm text-zinc-500">Works on iPhone &amp; Android · No app · No account · Just text a photo</p>
+        </div>
+      </section>
+
       {/* PRICING */}
       <section id="pricing" className="bg-zinc-900 px-6 py-24">
         <div className="mx-auto max-w-6xl">
@@ -358,7 +401,7 @@ export default function Home() {
                 <li className="flex items-start gap-2"><span className="mt-0.5 text-orange-500">✓</span> Website integration</li>
                 <li className="flex items-start gap-2"><span className="mt-0.5 text-orange-500">✓</span> Email support</li>
               </ul>
-              <button onClick={() => setShowForm(true)} className="mt-8 block w-full rounded-full border border-zinc-700 py-3 text-center text-sm font-semibold text-white transition hover:border-zinc-500">Get Started</button>
+              <button onClick={() => handlePricingClick("starter")} className="mt-8 block w-full rounded-full border border-zinc-700 py-3 text-center text-sm font-semibold text-white transition hover:border-zinc-500">Get Started</button>
             </div>
             <div className="relative rounded-2xl border-2 border-orange-500 bg-zinc-950 p-8">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-orange-500 px-4 py-1 text-xs font-semibold text-white">Most Popular</div>
@@ -371,7 +414,7 @@ export default function Home() {
                 <li className="flex items-start gap-2"><span className="mt-0.5 text-orange-500">✓</span> All platform exports</li>
                 <li className="flex items-start gap-2"><span className="mt-0.5 text-orange-500">✓</span> Priority support</li>
               </ul>
-              <button onClick={() => setShowForm(true)} className="mt-8 block w-full rounded-full bg-orange-500 py-3 text-center text-sm font-semibold text-white transition hover:bg-orange-600">Get Started</button>
+              <button onClick={() => handlePricingClick("pro")} className="mt-8 block w-full rounded-full bg-orange-500 py-3 text-center text-sm font-semibold text-white transition hover:bg-orange-600">Get Started</button>
             </div>
             <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-8">
               <h3 className="text-lg font-semibold text-white">Studio</h3>
@@ -383,7 +426,7 @@ export default function Home() {
                 <li className="flex items-start gap-2"><span className="mt-0.5 text-orange-500">✓</span> AI phone concierge included</li>
                 <li className="flex items-start gap-2"><span className="mt-0.5 text-orange-500">✓</span> Dedicated account manager</li>
               </ul>
-              <button onClick={() => setShowForm(true)} className="mt-8 block w-full rounded-full border border-zinc-700 py-3 text-center text-sm font-semibold text-white transition hover:border-zinc-500">Get Started</button>
+              <button onClick={() => handlePricingClick("studio")} className="mt-8 block w-full rounded-full border border-zinc-700 py-3 text-center text-sm font-semibold text-white transition hover:border-zinc-500">Get Started</button>
             </div>
           </div>
         </div>

@@ -119,6 +119,10 @@ export default function GenerateWizard() {
   const [cuisineContext, setCuisineContext] = useState<Record<string, string | string[] | boolean>>({});
   const [selectedTemplate, setSelectedTemplate] = useState<CuisineTemplate | null>(null);
   const [showCuisineSuggestions, setShowCuisineSuggestions] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [generatedPrompt, setGeneratedPrompt] = useState("");
+  const [generateError, setGenerateError] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -172,7 +176,7 @@ export default function GenerateWizard() {
     if (file) handleFileUpload(file);
   }
 
-  function handleGenerate() {
+  async function handleGenerate() {
     const config = {
       dishName,
       hasExistingPhoto: hasExistingPhoto ?? false,
@@ -190,8 +194,55 @@ export default function GenerateWizard() {
       selectedTemplate: selectedTemplate?.id,
     };
     const prompt = buildPrompt(config);
-    console.log("Generation config:", config);
-    console.log("Built prompt:", prompt);
+    setGenerating(true);
+    setGenerateError("");
+    setGeneratedImages([]);
+    setGeneratedPrompt(prompt);
+
+    try {
+      // Compress image before sending if we have one
+      let imageDataUri: string | undefined;
+      if (uploadPreview && style === "enhanced") {
+        // Compress to max 800px and 0.7 quality to stay under Vercel 4.5MB limit
+        imageDataUri = await new Promise<string>((resolve) => {
+          const img = new window.Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const max = 800;
+            const scale = Math.min(1, max / Math.max(img.width, img.height));
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext("2d")!;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", 0.7));
+          };
+          img.src = uploadPreview;
+        });
+      }
+
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, imageDataUri, resolution: resolution ?? "1k", variations }),
+      });
+      let data: { images?: string[]; error?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        setGenerateError("Server error. Please try again.");
+        return;
+      }
+      if (!res.ok || data.error) {
+        setGenerateError(data.error ?? "Generation failed. Please try again.");
+      } else {
+        setGeneratedImages(data.images ?? []);
+        setStep(8); // move to results step
+      }
+    } catch {
+      setGenerateError("Something went wrong. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
   }
 
   function handleCuisineAnswer(questionId: string, value: string | string[] | boolean) {
@@ -869,10 +920,12 @@ export default function GenerateWizard() {
 
               <button
                 onClick={handleGenerate}
-                className="mt-8 w-full rounded-full bg-orange-500 py-4 text-base font-semibold text-white transition hover:bg-orange-600"
+                disabled={generating}
+                className="mt-8 w-full rounded-full bg-orange-500 py-4 text-base font-semibold text-white transition hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Generate My Photos →
+                {generating ? "Generating... ✨" : "Generate My Photos →"}
               </button>
+              {generateError && <p className="mt-4 text-center text-sm text-red-400">{generateError}</p>}
               <p className="mt-3 text-center text-sm text-zinc-500">
                 This will use {variations} credit{variations !== 1 ? "s" : ""} from your plan
                 {addVideo ? " + 1 video credit" : ""}
