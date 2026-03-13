@@ -154,13 +154,17 @@ export default function GenerateWizard() {
 
   // Parse ingredients when moving to step 3
   useEffect(() => {
-    if (step === 3) {
+    if (step === 3 && ingredients.length === 0) {
       const raw = descriptionSource === "text" ? descriptionRaw : "";
-      if (ingredients.length === 0 && raw) {
+      if (raw) {
+        // Parse from text description
         setIngredients(parseIngredients(raw));
+      } else if (dishName.trim()) {
+        // Photo flow or no description — seed from dish name so button is never stuck
+        setIngredients([dishName.trim()]);
       }
     }
-  }, [step, descriptionSource, descriptionRaw, ingredients.length]);
+  }, [step, descriptionSource, descriptionRaw, ingredients.length, dishName]);
 
   function handleFileUpload(file: File) {
     if (file.size > 20 * 1024 * 1024) return;
