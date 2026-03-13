@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: `You are a food photography expert. Analyze this restaurant food photo and return JSON only:
-{"dishName":"name","cuisine":"type","ingredients":["..."],"enhancementPrompt":"Professional food photography of [dish]. Dark background, dramatic side lighting, steam if hot. Photorealistic, restaurant menu quality, 1:1 square."}` },
+{"dishName":"name","cuisine":"type","ingredients":["key ingredients"],"heroDetail":"the most visually appealing element (e.g. glistening glaze, steam, vibrant sauce)"}` },
           { role: "user", content: [{ type: "text", text: "Analyze this food photo." }, { type: "image_url", image_url: { url: dataUri, detail: "low" } }] },
         ],
         temperature: 0.5,
@@ -195,17 +195,22 @@ export async function POST(req: NextRequest) {
     await fetch(initData.upload_url, { method: "PUT", headers: { "Content-Type": contentType }, body: imageBuffer });
 
     // Enhance with Fal.ai
-    const falRes = await fetch("https://fal.run/fal-ai/flux/dev/image-to-image", {
+    // Nano Banana 2 (Google Imagen 3) — keeps the item, enhances the setting
+    const falRes = await fetch("https://fal.run/fal-ai/nano-banana-2/edit", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Key ${FAL_KEY}` },
-      body: JSON.stringify({ image_url: initData.file_url, prompt: analysis.enhancementPrompt, strength: 0.65, image_size: "square_hd", num_images: 1 }),
+      body: JSON.stringify({
+        prompt: `Product hero shot. Keep this exact ${analysis.dishName} unchanged — same item, same ingredients, same presentation. Place it on a clean dark surface with dramatic soft studio lighting from above, rich warm tones, shallow depth of field, beautiful bokeh background. Close up tight on the dish. Commercial menu photography quality. Vibrant colors, appetizing, magazine worthy.`,
+        image_urls: [initData.file_url],
+        aspect_ratio: "auto"
+      }),
     });
 
     const falText = await falRes.text();
     console.log("Fal response:", falRes.status, falText.substring(0, 200));
     if (!falRes.ok) return xmlReply(twimlResponse("We're having trouble enhancing that photo. Please try again!"));
 
-    let falData: { images?: { url: string }[] } = {};
+    let falData: { images?: { url: string; file_name?: string }[] } = {};
     try { falData = JSON.parse(falText); } catch { /* */ }
 
     const enhancedUrl = falData.images?.[0]?.url;
