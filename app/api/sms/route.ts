@@ -113,8 +113,9 @@ export async function POST(req: NextRequest) {
     if (numMedia === "0" && (messageBody === "yes" || messageBody === "yes!")) {
       await kvSet(`plateai:intent:${from}`, "signup");
       await notifyLead(from, "wants_signup");
+      const paymentLink = process.env.PLATEAI_STRIPE_LINK || "https://getplateai.com";
       return xmlReply(twimlResponse(
-        "🎉 Great! Here's your link:\nhttps://getplateai.com\n\nPick a plan and get unlimited enhancements + video + social posts. Takes 2 minutes."
+        `🎉 You're in!\n\nGet unlimited AI food photos for $29/mo:\n${paymentLink}\n\nTakes 2 minutes. Cancel anytime.`
       ));
     }
 
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
     if (usage >= FREE_LIMIT) {
       await notifyLead(from, "limit_hit");
       return xmlReply(twimlResponse(
-        `You've used all ${FREE_LIMIT} free enhancements! 🎉\n\nReply YES to get unlimited enhancements + video + social posts starting at $49/mo.`
+        `You've used all ${FREE_LIMIT} free enhancements! 🎉\n\nReply YES to unlock unlimited photos for just $29/mo. No contracts, cancel anytime.`
       ));
     }
 
@@ -229,8 +230,8 @@ export async function POST(req: NextRequest) {
 
     // Auto-send after first 10
     const replyMsg = remaining === 0
-      ? `✨ Here's your enhanced ${analysis.dishName}!\n\nThat was your last free enhancement. Reply YES for unlimited access at getplateai.com`
-      : `✨ Here's your enhanced ${analysis.dishName}!\n\n${remaining} free enhancement${remaining === 1 ? "" : "s"} left. getplateai.com for unlimited.`;
+      ? `✨ Here's your enhanced ${analysis.dishName}!\n\nThat was your last free enhancement. Reply YES for unlimited access — $29/mo, cancel anytime. getplateai.com`
+      : `✨ Here's your enhanced ${analysis.dishName}!\n\n${remaining === 1 ? "⚠️ Last free photo!" : `${remaining} free photos left.`} Reply YES to go unlimited for $29/mo.`;
 
     return xmlReply(twimlResponse(replyMsg, enhancedUrl));
 
