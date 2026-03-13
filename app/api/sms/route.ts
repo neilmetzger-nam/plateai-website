@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
       await notifyLead(from, "wants_signup");
       const paymentLink = "https://getplateai.com/#pricing";
       return xmlReply(twimlResponse(
-        `🎉 You're in!\n\nGet unlimited AI food photos for $29/mo:\n${paymentLink}\n\nTakes 2 minutes. Cancel anytime.`
+        `🎉 Let's do this!\n\nPick your plan at:\n${paymentLink}\n\nStarter $29.95 · Pro $99 · Studio $199\nCancel anytime.`
       ));
     }
 
@@ -230,8 +230,8 @@ export async function POST(req: NextRequest) {
 
     // Auto-send after first 10
     const replyMsg = remaining === 0
-      ? `✨ Here's your enhanced ${analysis.dishName}!\n\nThat was your last free enhancement. Reply YES for unlimited access — $29/mo, cancel anytime. getplateai.com`
-      : `✨ Here's your enhanced ${analysis.dishName}!\n\n${remaining === 1 ? "⚠️ Last free photo!" : `${remaining} free photos left.`} Reply YES to go unlimited for $29/mo.`;
+      ? `✨ Here's your ${analysis.dishName} — commercial quality! 🔥\n\nThat was your last free photo. Reply YES for unlimited hero shots, lifestyle photos & video commercials starting at $29.95/mo.`
+      : `✨ Here's your ${analysis.dishName} — ready for your menu! ✨\n\n${remaining === 1 ? "⚠️ Last free photo!" : `${remaining} free photos left.`} Reply YES for unlimited at $29.95/mo.`;
 
     return xmlReply(twimlResponse(replyMsg, enhancedUrl));
 
