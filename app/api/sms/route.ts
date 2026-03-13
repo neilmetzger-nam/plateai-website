@@ -61,6 +61,42 @@ async function notifyLead(phone: string, type: string) {
   }).catch(() => {});
 }
 
+
+async function alertNeil(from: string, beforeUrl: string, afterUrl: string, dishName: string) {
+  const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  const TELEGRAM_CHAT = process.env.NEIL_TELEGRAM_CHAT_ID;
+  const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
+  const TWILIO_TOKEN_VAL = process.env.TWILIO_AUTH_TOKEN;
+  const TWILIO_FROM = process.env.TWILIO_PHONE_NUMBER;
+
+  // Store pending approval in KV
+  await kvSet(`plateai:pending:${from}`, JSON.stringify({ beforeUrl, afterUrl, dishName, timestamp: new Date().toISOString() }));
+
+  // 1. Telegram message with before/after
+  if (TELEGRAM_TOKEN && TELEGRAM_CHAT) {
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT,
+        text: `📸 *New PlateAI Request*\nCustomer: ${from}\nDish: ${dishName}\n\nBefore: ${beforeUrl}\nAfter: ${afterUrl}\n\nReply *APPROVE ${from}* or *REJECT ${from}*`,
+        parse_mode: "Markdown"
+      })
+    }).catch(() => {});
+  }
+
+  // 2. Phone call via Twilio
+  if (TWILIO_SID && TWILIO_TOKEN_VAL && TWILIO_FROM) {
+    const twiml = `<?xml version="1.0" encoding="UTF-8"?><Response><Say voice="Polly.Joanna">Hey Neil, this is Dave. You have a new PlateAI image request from a customer. The dish is ${dishName}. Please check Telegram to approve or reject.</Say></Response>`;
+    const body = new URLSearchParams({ To: "+17032972632", From: TWILIO_FROM, Twiml: twiml }).toString();
+    await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Calls.json`, {
+      method: "POST",
+      headers: { "Authorization": "Basic " + Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN_VAL}`).toString("base64"), "Content-Type": "application/x-www-form-urlencoded" },
+      body
+    }).catch(() => {});
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.text();
@@ -175,6 +211,18 @@ export async function POST(req: NextRequest) {
     const enhancedUrl = falData.images?.[0]?.url;
     if (!enhancedUrl) return xmlReply(twimlResponse("We're having trouble enhancing that photo. Please try again!"));
 
+    // Alert Neil for approval (first 10 customers)
+    const totalUsageRaw = await kvGet("plateai:total_processed");
+    const totalProcessed = totalUsageRaw ? parseInt(totalUsageRaw) : 0;
+
+    if (totalProcessed < 10) {
+      await kvIncr("plateai:total_processed");
+      await alertNeil(from, initData.file_url, enhancedUrl, analysis.dishName);
+      // Hold — send holding message, delivery happens after Neil approves
+      return xmlReply(twimlResponse(`✨ Your ${analysis.dishName} is being enhanced! We'll send it in just a moment. 🎨`));
+    }
+
+    // Auto-send after first 10
     const replyMsg = remaining === 0
       ? `✨ Here's your enhanced ${analysis.dishName}!\n\nThat was your last free enhancement. Reply YES for unlimited access at getplateai.com`
       : `✨ Here's your enhanced ${analysis.dishName}!\n\n${remaining} free enhancement${remaining === 1 ? "" : "s"} left. getplateai.com for unlimited.`;
