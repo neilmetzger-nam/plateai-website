@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
     if (numMedia === "0" && (messageBody === "yes" || messageBody === "yes!")) {
       await kvSet(`plateai:intent:${from}`, "signup");
       await notifyLead(from, "wants_signup");
-      const paymentLink = process.env.PLATEAI_STRIPE_LINK || "https://getplateai.com";
+      const paymentLink = "https://getplateai.com/#pricing";
       return xmlReply(twimlResponse(
         `🎉 You're in!\n\nGet unlimited AI food photos for $29/mo:\n${paymentLink}\n\nTakes 2 minutes. Cancel anytime.`
       ));
