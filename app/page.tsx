@@ -61,8 +61,8 @@ export default function Home() {
       {/* HERO */}
       <section className="px-6 pb-20 pt-24 md:pt-32">
         <div className="mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl">Your menu deserves better photos.</h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-400 md:text-xl">PlateAI generates professional food photography and cinematic hero videos for your restaurant — in minutes, not weeks. No photographer, no studio, no markup.</p>
+          <h1 className="text-4xl font-bold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl">44% more sales starts with a better photo.</h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-400 md:text-xl">Text us your food photo. We enhance it, show you 3 styles, and deliver it sized perfectly for your menu, DoorDash, or Instagram. No photographer. No resizing errors. $29.95/month.</p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link href="/generate" className="rounded-full bg-orange-500 px-8 py-3.5 text-base font-semibold text-white transition hover:bg-orange-600">Generate Your First Photo →</Link>
             <a href="#examples" className="rounded-full border border-zinc-700 px-8 py-3.5 text-base font-semibold text-zinc-300 transition hover:border-zinc-500 hover:text-white">See Examples</a>
