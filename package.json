@@ -13,7 +13,7 @@
     "@fal-ai/client": "^1.9.4",
     "@vercel/kv": "^3.0.0",
     "next": "16.1.6",
-    "openai": "^6.27.0",
+    "openai": "^6.29.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "squareup": "^1.0.0",
